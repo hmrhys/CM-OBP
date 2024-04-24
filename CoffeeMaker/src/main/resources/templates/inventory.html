@@ -1,0 +1,195 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Inventory</title>
+<link rel="stylesheet" href="css/bootstrap.css" />
+<link rel="stylesheet" href="css/app.css" />
+<style>
+input.ng-valid {
+	background-color: lightgreen;
+}
+
+input.ng-dirty.ng-invalid-required,input.ng-dirty.ng-invalid-number {
+	background-color: red;
+}
+
+input.ng-dirty.ng-invalid-min {
+	background-color: yellow;
+}
+
+
+</style>
+<script
+	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.js"></script>
+</head>
+
+<body>
+
+
+	<script>
+		/*<![CDATA[*/
+		var app = angular.module('myApp', []);
+		app.controller('inventoryCtrl', function($scope, $http) {
+			
+			$scope.getInventory = function() {
+				$http.get("/api/v1/inventory").then(function(response) {
+					console.log("INVENTORY RESPONSE");
+					console.log(response.data);
+					$scope.inventoryOriginal = response.data;
+				}, function(rejection) {
+					console.error("Error while getting Inventory");
+				})
+			}
+			
+			$scope.reset = function() {
+				$scope.inventoryOriginal = {};
+				$scope.getInventory();
+				
+				$scope.updatedInventory = { ingredients: [] };
+				
+				$scope.chef = [];
+
+				if (undefined != $scope.addInventoryForm) {
+					$scope.addInventoryForm.$setPristine(); //reset Form
+				}
+			}
+			
+			$scope.reset();
+			
+			$scope.getInventory();
+			
+			$scope.makeIngredientsList = function ( chef ) {
+				ingredientsList = [];
+				
+				$scope.ingredient = { ingredient : '', amount : '' };
+				
+				for (let i = 0; i < Object.keys(chef).length; i++) {
+					let key = Object.keys(chef)[i];
+					
+					$scope.ingredient = { ingredient : key, amount : chef[key] };
+					
+					// console.log("key: " + key);
+					// console.log("value: " + chef[key]);
+					
+					// console.log($scope.ingredient);
+					
+					ingredientsList.push( $scope.ingredient );
+				}
+				return ingredientsList;
+			}
+
+			$scope.updateInventory = function() {
+				$scope.success = false;
+				$scope.failure = false;
+
+				$http.put("/api/v1/inventory", $scope.updatedInventory).then(
+						function(response) {
+							$scope.getInventory();
+
+						}, function(rejection) {
+							$scope.failure = true;
+							$scope.success = false;
+							console.error("Error while updating Inventory!");
+						});
+				$scope.success = !($scope.failure);
+			}
+
+			$scope.submit = function() {
+				$scope.updatedInventory.ingredients = $scope.makeIngredientsList($scope.chef);
+				console.log( $scope.updatedInventory.ingredients.toString() );
+				// update inventory ingredients list before calling updateInventory
+				$scope.updateInventory();
+				$scope.reset();
+			}
+
+			/* prints the list of checked items (keys) and their values */
+			$scope.printCheckedItems = function(selectedItems) {
+				strs = [];
+				for (let i = 0; i < Object.keys(selectedItems).length; i++) {
+					let key = Object.keys(selectedItems)[i];
+					if (selectedItems[key]) {
+						strs.push(new String(key + ": " + selectedItems[key]));
+					}
+				}
+				return strs.toString();
+			}
+
+		});
+		/*]]>*/
+	</script>
+
+
+
+	<div class="generic-container ng-cloak" ng-app="myApp"
+		ng-controller="inventoryCtrl as ctrl">
+		<div class="panel panel-default">
+			<div class="panel-heading">
+				<span class="lead">View Inventory</span>
+			</div>
+			
+			<div ng-repeat="ingredient in inventoryOriginal.ingredients track by $index">
+				{{ ingredient.ingredient }}: <span id="current{{ ingredient }}" ng-bind="ingredient.amount"></span><br>
+		    </div>
+
+			<!-- <br>yo<br>
+			Coffee: <span id="currentCoffee" ng-bind="inventoryOriginal.coffee"></span><br />
+			Milk: <span id="currentMilk" ng-bind="inventoryOriginal.milk"></span><br />
+			Sugar: <span id="currentSugar" ng-bind="inventoryOriginal.sugar"></span><br />
+			Chocolate: <span id="currentChocolate"
+				ng-bind="inventoryOriginal.chocolate"></span><br /> -->
+
+			<div class="panel-heading">
+				<span class="lead">Update Inventory Form </span>
+			</div>
+			<div class="formcontainer">
+				<form ng-submit="submit()" name="addInventoryForm"
+					class="form-horizontal">
+					<div ng-repeat="ingredient in inventoryOriginal.ingredients track by $index">
+						<div class="row">
+							<div class="form-group col-md-12">
+								<label class="col-md-2 control-label" for="file">
+									<tt>{{ ingredient.ingredient }}</tt>
+								</label>
+								<!-- input section -->
+								<div class="col-md-7">
+									<input type="number" ng-model="$parent.chef[ingredient.ingredient]" name="{{ ingredient.ingredient }}"
+									class="{{ ingredient.ingredient }} form-control input-sm"
+									placeholder="Enter amount of {{ ingredient.ingredient }}" required="0" min="0"/>
+									
+									<div class="has-error" ng-show="addInventoryForm.$dirty">
+										<span ng-show="addInventoryForm.{{ ingredient.ingredient }}.$error.required">This
+											is a required field.</span> <span
+											ng-show="addInventoryForm.{{ ingredient.ingredient }}.$error.min">Minimum
+											amount is 0</span> <span ng-show="addInventoryForm.{{ ingredient.ingredient }}.$invalid">This
+											field is invalid.</span>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<!-- Printing (chef): {{ printCheckedItems(chef) }} -->
+
+					<div class="row">
+						<div class="form-actions floatRight">
+							<input type="submit" value="Submit"
+								class="btn btn-primary btn-sm"
+								ng-disabled="addInventoryForm.$invalid" />
+							<button type="button" ng-click="reset()"
+								class="btn btn-warning btn-sm"
+								ng-disabled="addInventoryForm.$pristine">Reset Form</button>
+						</div>
+					</div>
+				</form>
+			</div>
+			<div ng-show="success">Inventory Successfully Updated</div>
+			<div ng-show="failure">Error while updating inventory.</div>
+		</div>
+
+		<a href="/index">Home</a>
+	</div>
+
+
+
+</body>
+</html>

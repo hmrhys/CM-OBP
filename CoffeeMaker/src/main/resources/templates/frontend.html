@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<!--- Header information about the page -->
+<body>
+	<div layout:fragment="content">
+		<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.js"></script>
+		<script>
+			/* Without these comments, Thymeleaf will try to parse the Javascript as XML and break itself sometimes */
+			/*<![CDATA[*/ 
+			var app = angular.module('myApp', []);
+			app.controller('populateCtrl', function($scope, $http, $q) {
+
+				/* Logic that handles controlling your page goes here */
+				
+				console.log('yo yo yo');
+				console.log($scope);
+				
+				let x = 2;
+				let y = 0;
+				
+				$scope.myFunction = function () {
+				    /* Creates a function inside of `$scope` called `myFunction` that takes no parameters and 
+				    maybe returns something (unlike in Java, function return types aren't declared -- the 
+				    function can return whatever it wants, or nothing at all...) */
+				    alert("Hello to everyone in the world other than hmreese2 :)");
+				}
+				
+				$scope.power = function (x, y) {
+					return Math.pow(x, y);
+				}
+				
+				$scope.days = [
+					{value: 1, display: 'Monday'},
+					{value: 2, display: 'Tuesday'},
+					{value: 3, display: 'Wednesday'},
+					{value: 4, display: 'Thursday'},
+					{value: 5, display: 'Friday'}
+				];
+				
+				$scope.selectedInstruments = [];
+				
+				$scope.instruments = ["saxophone", "guitar", "piano", "violin", 
+					"drums", "trumpet", "clarinet", "banjo", "bagpipes"];
+				
+				$scope.foodData = {
+				        "Candy":
+				            [
+				                { "name": "Twix", "sugar": 28, "display": "Twix: 28g"},
+				                { "name": "Jawbreaker", "sugar": 16, "display": "Jawbreaker: 16g"},
+				                { "name": "Payday", "sugar": 17, "display": "Payday: 17g"}
+				            ],
+				        "Protein":
+				            [
+				            	{ "name": "Egg", "protein": 6, "display": "Egg: 6g"},
+				            	{ "name": "Steak", "protein": 62, "display": "Steak: 62g"},
+				            	{ "name": "Chicken", "protein": 38, "display": "Chicken: 38g"}
+				            ]
+				};
+
+			});
+
+			/* Without these comments, Thymeleaf will try to parse the Javascript as XML and break itself sometimes */
+			/*]]>*/
+		</script>
+
+		<div ng-app="myApp" ng-controller="populateCtrl">
+
+			<!--- Various HTML elements, with extra tags telling Angular how to work with them, go here -->
+			<input type="text" ng-model="x" required="true" />
+			<input type="text" ng-model="y" required="true" />
+			<br>
+			The result is: {{ power(x,y) }}
+			<br>
+			<br>
+			<button type="button" ng-click="myFunction()">Click Me!</button>
+			<br>
+			<br>
+			<div class="col-sm">
+				Select the day: <br />
+				<select ng-model="day"
+						ng-options="item as item.display for item in days"
+						required="true">
+					<option value="">Select the day</option>
+				</select>
+			</div>
+			<br>
+			<br>
+			<div class="col-sm">
+				(Optional) Select the instruments for your band <br />
+				<div ng-repeat="instrument in instruments track by $index">
+					<input type="checkbox" ng-model="$parent.selectedInstruments[instrument]">
+					<tt> {{ instrument }}</tt>
+					<!-- remove the extra spaces -->
+					</input>
+				</div>
+			</div>
+			<br>
+			<br>
+			<div ng-repeat="(group, foods) in foodData track by $index">
+				Food for {{ group }}:<br />
+				<div id="{{ food }}">
+					<li ng-repeat="food in foods">{{ food.display }}</li>
+				</div>
+			</div>
+		</div>
+		
+	</div>
+
+</body>
+</html>
